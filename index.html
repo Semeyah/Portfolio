@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Page</title>
     <style>
+        .error-message {
+            color: red;
+            display: none; /* Hidden by default */
+        }
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
@@ -67,6 +71,106 @@
             text-decoration: underline;
         }
     </style>
+   <script src="https://apis.google.com/js/platform.js" async defer></script>
+   <script>
+    // Redirect function
+    function redirect() {
+         window.location.href = 'https://semeyah.github.io/portfolio/main.html'; // Make sure this matches your Google Cloud Console settings
+         return false; // Prevents the default form submission
+     }
+
+    // Function to show error messages
+    function showErrorMessage(message) {
+        const errorMessage = document.getElementById('error-message');
+        errorMessage.style.display = 'block';
+        errorMessage.textContent = message;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const showPasswordCheckbox = document.getElementById('show-password');
+        const passwordField = document.getElementById('password');
+
+        // Toggle password visibility
+        if (showPasswordCheckbox) {
+            showPasswordCheckbox.addEventListener('change', function () {
+                passwordField.type = showPasswordCheckbox.checked ? 'text' : 'password';
+            });
+        }
+
+        const googleLoginButton = document.getElementById('google-login');
+
+        // Add event listener for Google login button
+        if (googleLoginButton) {
+            googleLoginButton.addEventListener('click', function () {
+                try {
+                    const auth2 = gapi.auth2.getAuthInstance();
+                    if (auth2) {
+                        auth2.signIn().then(function (user) {
+                            const profile = user.getBasicProfile();
+                            const email = profile.getEmail();
+                            const myEmail = 'clairemanatad13@gmail.com'; // Replace with your email
+
+                            if (email === myEmail) {
+                                console.log('Logged in with Google');
+                                localStorage.setItem('loggedIn', 'true');
+                                redirect();
+                            } else {
+                                console.error('Unauthorized user');
+                                showErrorMessage('You are not authorized. Please log in with the correct email.');
+                            }
+                        }).catch(function (error) {
+                            console.error('Error signing in with Google', error);
+                            showErrorMessage('An error occurred during Google login. Please try again.');
+                        });
+                    } else {
+                        console.error("Google API not initialized");
+                        showErrorMessage('Google API not initialized. Please refresh the page.');
+                    }
+                } catch (error) {
+                    console.error("Unexpected error during sign-in", error);
+                    showErrorMessage('An unexpected error occurred during sign-in. Please try again.');
+                }
+            });
+        }
+    });
+
+    // Load Google API on page load
+    window.addEventListener('load', function () {
+        loadGoogleAPI();
+    });
+
+    // Load Google API SDK and initialize it
+    function loadGoogleAPI() {
+  gapi.load('auth2', function () {
+    gapi.auth2.init({
+      client_id: '342838209182-8fa2phrdq0llkp8294v70aj9aqvs71qr.apps.googleusercontent.com',// Replace with your Google Client ID
+      scope: 'profile email'
+    }).then(function () {
+      console.log("Google API successfully initialized");
+    }).catch(function (error) {
+      console.error("Error initializing Google API", error);
+    });
+  });
+  function isAuthorizedEmail(email) {
+           function onSignIn(googleUser) {
+    var profile = googleUser.getBasicProfile();
+    var email = profile.getEmail();
+    
+    if (isAuthorizedEmail(email)) {
+        var id_token = googleUser.getAuthResponse().id_token;
+        document.getElementById('id_token').value = id_token;
+        document.forms[0].submit();
+    } else {
+        alert("Unauthorized email address.");
+    }
+}
+            const authorizedEmails = ['clairemanatad13@gmail.com']; // Replace with your authorized emails
+            return authorizedEmails.includes(email);
+        }
+}
+</script>
+
+   
 </head>
 <body>
     <div class="login-container">
@@ -75,67 +179,17 @@
         <form id="login-form">
             <input type="text" placeholder="Username" required><br>
             <input type="password" id="password" placeholder="Password" required><br>
-            <div class="show-password-container">
-                <input type="checkbox" id="show-password">
-                <label for="show-password">Show Password</label>
-            </div>
+            
             <button class="login-btn" type="submit">Log in</button>
             <div class="oauth-container">
                 <p>Sign in with your account:</p>
                 <img id="google-login" src="assets/images/gowgle.png" alt="Log in with Google" title="Log in with Google" style="cursor: pointer; width: 40px; margin: 5px;">
+                <div id="error-message" class="error-message">You are not authorized. Please log in with the correct email.</div> <!-- Error message -->
             </div>
         </form>
         <div class="lost-password">
             <a href="#">Forgot Password?</a>
         </div>
     </div>
-    <script>
-        function redirect() {
-            window.location.href = 'index.html'; // Change the URL to your main portfolio or target page
-            return false; // Prevents the default form submission
-        }
-
-        const showPasswordCheckbox = document.getElementById('show-password');
-        const passwordField = document.getElementById('password');
-
-        showPasswordCheckbox.addEventListener('change', function() {
-            if (showPasswordCheckbox.checked) {
-                passwordField.type = 'text'; // Shows password
-            } else {
-                passwordField.type = 'password'; // Hides password
-            }
-        });
-
-        const googleLoginButton = document.getElementById('google-login');
-
-        // Load Google API SDK
-        function loadGoogleAPI() {
-            gapi.load('auth2', function() {
-                gapi.auth2.init({
-                    client_id: 'YOUR_GOOGLE_CLIENT_ID', // Your Google Client ID
-                    scope: 'profile email'
-                });
-            });
-        }
-
-        (function() {
-            var script = document.createElement('script');
-            script.src = "https://apis.google.com/js/platform.js";
-            script.async = true;
-            script.defer = true;
-            script.onload = loadGoogleAPI;
-            document.head.appendChild(script);
-        })();
-
-        googleLoginButton.addEventListener('click', function() {
-            const auth2 = gapi.auth2.getAuthInstance();
-            auth2.signIn().then(function(user) {
-                console.log('Logged in with Google');
-                // Handle the login response here
-            }).catch(function(error) {
-                console.error('Error signing in with Google', error);
-            });
-        });
-    </script>
 </body>
 </html>
